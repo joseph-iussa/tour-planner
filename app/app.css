@@ -1,0 +1,32 @@
+body {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 10px;
+    font-size: 18px;
+    font-family: sans-serif;
+}
+
+#row {
+    display: flex;
+    flex-direction: row;
+}
+
+#mapPanel {
+    flex: 0 0 70vw;
+    display: flex;
+    flex-direction: column;
+}
+
+#mapControls {
+    flex: 0 0 auto;
+    margin-bottom: 10px;
+}
+
+#map {
+    flex: 0 0 75vh;
+}
+
+#locationsOfInterest {
+    flex: 0 0 auto;
+    margin-left: 10px;
+}

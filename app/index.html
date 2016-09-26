@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="tourPlanner">
+
+<head>
+    <meta charset="utf-8">
+    <title>Tour Planner</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="lib/geocoder/Control.Geocoder.css" />
+    <link rel="stylesheet" href="app.css">
+    <script src="bower_components/html5-boilerplate/dist/js/vendor/modernizr-2.8.3.min.js"></script>
+    <!-- For leaflet-bing-layer -->
+    <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=Promise"></script>
+</head>
+
+<body ng-controller="TourPlannerController">
+    <h1>Tour Planner</h1>
+
+    <div id="row">
+        <section id="mapPanel">
+            <div id="mapControls">
+                <div>
+                    <strong>Set Location:</strong>
+                    <a href="" ng-click="detectLocation()">Use Device Location</a>
+                    or use the search form at the top of the map.
+                </div>
+
+                <div>
+                    <strong>Current Radius:</strong>
+                    {{radius | number:0}} meters. Click the
+                    <input type="button"
+                        ng-click="toggleSetRadiusMode()"
+                        value="{{setRadiusMode | setRadiusModeButtonLabel}}" />
+                    button then click on the map to set the radius.
+                </div>
+            </div>
+            <div id="map"></div>
+        </section>
+        <section id="locationsOfInterest">
+            <h1>Locations of Interest</h1>
+        </section>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>
+    <script src="lib/leaflet-bing-layer.min.js"></script>
+    <script src="lib/geocoder/Control.Geocoder.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-route/angular-route.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
