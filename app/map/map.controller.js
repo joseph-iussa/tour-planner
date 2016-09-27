@@ -2,9 +2,13 @@
 
 angular.module('map').
 controller('MapController', function MapController($scope, BING_API_KEY) {
+    $scope.origin = [0, 0];
     $scope.radius = 0;
     $scope.setRadiusMode = false;
+
+    // Map and widget objects.
     $scope.map = L.map('map').locate({ setView: true });
+    $scope.originMarker = L.marker([0, 0], { draggable: true });
     $scope.circleOverlay = L.circle([0, 0], 0, {
         weight: 3,
         opacity: 0.4,
@@ -16,6 +20,7 @@ controller('MapController', function MapController($scope, BING_API_KEY) {
         imagerySet: 'Road'
     }).addTo($scope.map);
 
+    // Search widget.
     L.Control.geocoder({
         defaultMarkGeocode: false,
         collapsed: false,
@@ -23,11 +28,25 @@ controller('MapController', function MapController($scope, BING_API_KEY) {
     })
     .on('markgeocode', function (e) {
         $scope.map.setView(e.geocode.center);
+        updateOrigin(e.geocode.center);
     }).addTo($scope.map);
 
+    // Browser geolocation api.
     $scope.detectLocation = function () {
         $scope.map.locate({ setView: true });
     };
+
+    $scope.map.addEventListener('locationfound', function(e) {
+        updateOrigin(e.latlng);
+    });
+
+    // Update origin marker based on click.
+    $scope.map.addEventListener('click', function(e) {
+        // Only if not in set radius mode.
+        if (!$scope.setRadiusMode) {
+            updateOrigin(e.latlng);
+        }
+    });
 
     $scope.toggleSetRadiusMode = function () {
         // Setting mode from ON to OFF.
@@ -51,6 +70,23 @@ controller('MapController', function MapController($scope, BING_API_KEY) {
         $scope.setRadiusMode = !$scope.setRadiusMode;
     }
 
+    function updateOrigin(latlng) {
+        $scope.$apply(function () {
+            $scope.origin = latlng;
+        });
+
+        $scope.originMarker.setLatLng(latlng).update();
+
+        if (!$scope.map.hasLayer($scope.originMarker)) {
+            $scope.map.addLayer($scope.originMarker);
+        }
+
+        // If have already drawn radius circle then update circle to follow marker.
+        if ($scope.map.hasLayer($scope.circleOverlay)) {
+            $scope.circleOverlay.setLatLng($scope.originMarker.getLatLng());
+        }
+    }
+
     function initCircleOverlay(e) {
         // May still have circle overlay if re-selecting radius.
         if (!$scope.map.hasLayer($scope.circleOverlay)) {
@@ -59,9 +95,9 @@ controller('MapController', function MapController($scope, BING_API_KEY) {
     }
 
     function updateCircleOverlay(e) {
-        $scope.circleOverlay.setLatLng($scope.map.getCenter());
+        $scope.circleOverlay.setLatLng($scope.originMarker.getLatLng());
         $scope.circleOverlay.setRadius(
-            $scope.map.getCenter().distanceTo(e.latlng)
+            $scope.originMarker.getLatLng().distanceTo(e.latlng)
         );
     }
 
@@ -75,7 +111,7 @@ controller('MapController', function MapController($scope, BING_API_KEY) {
         $scope.map.removeEventListener('mouseout', removeCircleOverlay);
 
         $scope.$apply(function () {
-            $scope.radius = $scope.map.getCenter().distanceTo(e.latlng);
+            $scope.radius = $scope.originMarker.getLatLng().distanceTo(e.latlng);
             $scope.setRadiusMode = false;
         });
     }
