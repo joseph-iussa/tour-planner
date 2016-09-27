@@ -1,28 +1,15 @@
 'use strict';
 
-angular.module('tourPlanner', [
-    'ngRoute'
-]).
-config(['$locationProvider', '$routeProvider', function ($locationProvider, $routeProvider) {
-    $locationProvider.hashPrefix('!');
-    $routeProvider.otherwise({ redirectTo: '/' });
-}]).
-filter('setRadiusModeButtonLabel', function() {
-    return function(setRadiusMode) {
-        return setRadiusMode ? 'Selecting Radius: Click again to cancel' : 'Select Radius';
-    }
-}).
-controller('TourPlannerController', function TourPlannerController($scope) {
+angular.module('map').
+controller('MapController', function MapController($scope, BING_API_KEY) {
     $scope.radius = 0;
     $scope.setRadiusMode = false;
-    $scope.placesOfInterest = [];
     $scope.map = L.map('map').locate({ setView: true });
     $scope.circleOverlay = L.circle([0, 0], 0, {
         weight: 3,
         opacity: 0.4,
         fillOpacity: 0.1
     });
-    var BING_API_KEY = 'AvthPFw7d6XY-wifblfxH90wq8DSgIjT2sLkAp2jfDj9hhYMqLcH_Y7MdC-YdBhs';
 
     L.tileLayer.bing({
         bingMapsKey: BING_API_KEY,

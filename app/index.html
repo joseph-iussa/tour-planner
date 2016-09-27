@@ -13,11 +13,11 @@
     <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=Promise"></script>
 </head>
 
-<body ng-controller="TourPlannerController">
+<body>
     <h1>Tour Planner</h1>
 
     <div id="row">
-        <section id="mapPanel">
+        <section id="mapPanel" ng-controller="MapController">
             <div id="mapControls">
                 <div>
                     <strong>Set Location:</strong>
@@ -36,7 +36,7 @@
             </div>
             <div id="map"></div>
         </section>
-        <section id="locationsOfInterest">
+        <section id="locationsOfInterest" ng-controller="PlacesOfInterestController">
             <h1>Locations of Interest</h1>
         </section>
     </div>
@@ -46,7 +46,13 @@
     <script src="lib/geocoder/Control.Geocoder.js"></script>
     <script src="bower_components/angular/angular.js"></script>
     <script src="bower_components/angular-route/angular-route.js"></script>
-    <script src="app.js"></script>
+    <script src="app.module.js"></script>
+    <script src="app.config.js"></script>
+    <script src="map/map.module.js"></script>
+    <script src="map/map.controller.js"></script>
+    <script src="map/set-radius-mode-button-label.filter.js"></script>
+    <script src="places-of-interest/places-of-interest.module.js"></script>
+    <script src="places-of-interest/places-of-interest.controller.js"></script>
 </body>
 
 </html>
