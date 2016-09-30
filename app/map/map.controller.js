@@ -1,19 +1,20 @@
 'use strict';
 
 angular.module('map').
-controller('MapController', function MapController($scope, BING_API_KEY) {
-    $scope.origin = [0, 0];
+controller('MapController', function MapController(
+        $scope, $rootScope, BING_API_KEY, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS) {
     $scope.radius = 0;
     $scope.setRadiusMode = false;
 
     // Map and widget objects.
-    $scope.map = L.map('map').locate({ setView: true });
-    $scope.originMarker = L.marker([0, 0], { draggable: true });
+    $scope.map = L.map('map').setView([40.7128, -74.0059], 11); // New York.
+    $scope.originMarker = L.marker($scope.map.getCenter()).addTo($scope.map);
     $scope.circleOverlay = L.circle([0, 0], 0, {
-        weight: 3,
-        opacity: 0.4,
-        fillOpacity: 0.1
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.05
     });
+    $scope.placesOfInterestMarkers = [];
 
     L.tileLayer.bing({
         bingMapsKey: BING_API_KEY,
@@ -45,6 +46,7 @@ controller('MapController', function MapController($scope, BING_API_KEY) {
         // Only if not in set radius mode.
         if (!$scope.setRadiusMode) {
             updateOrigin(e.latlng);
+            clearEOIMarkers($scope);
         }
     });
 
@@ -58,6 +60,7 @@ controller('MapController', function MapController($scope, BING_API_KEY) {
             $scope.map.removeEventListener('mouseover', initCircleOverlay);
             $scope.map.removeEventListener('mousemove', updateCircleOverlay);
             $scope.map.removeEventListener('mouseout', removeCircleOverlay);
+            $scope.map.removeEventListener('click', setRadius);
 
         // Setting mode from OFF to ON.
         } else {
@@ -68,22 +71,38 @@ controller('MapController', function MapController($scope, BING_API_KEY) {
         }
 
         $scope.setRadiusMode = !$scope.setRadiusMode;
-    }
+    };
+
+    $scope.$on('placesOfInterestUpdated', function(e, placesOfInterest) {
+        clearEOIMarkers($scope);
+
+        // Add new markers with popup.
+        placesOfInterest.forEach(function(poi) {
+            var marker = L.marker([poi.Latitude, poi.Longitude], {
+                icon: L.icon({
+                    iconUrl: '../img/poi-icon.png',
+                    iconSize: L.Icon.Default.prototype.options.iconSize,
+                    iconAnchor: L.Icon.Default.prototype.options.iconAnchor,
+                    popupAnchor: L.Icon.Default.prototype.options.popupAnchor,
+                    shadowUrl: '../img/poi-shadow.png',
+                    shadowSize: L.Icon.Default.prototype.options.shadowSize
+                }),
+                riseOnHover: true
+            }).bindPopup(poi.DisplayName);
+
+            $scope.map.addLayer(marker);
+            $scope.placesOfInterestMarkers.push(marker);
+        });
+    });
 
     function updateOrigin(latlng) {
-        $scope.$apply(function () {
-            $scope.origin = latlng;
-        });
-
         $scope.originMarker.setLatLng(latlng).update();
 
-        if (!$scope.map.hasLayer($scope.originMarker)) {
-            $scope.map.addLayer($scope.originMarker);
-        }
-
-        // If have already drawn radius circle then update circle to follow marker.
+        // If have already drawn radius circle then remove it and re-set radius.
         if ($scope.map.hasLayer($scope.circleOverlay)) {
-            $scope.circleOverlay.setLatLng($scope.originMarker.getLatLng());
+            $scope.map.removeLayer($scope.circleOverlay);
+            $scope.radius = 0;
+            $rootScope.$broadcast('searchAreaCleared');
         }
     }
 
@@ -92,13 +111,24 @@ controller('MapController', function MapController($scope, BING_API_KEY) {
         if (!$scope.map.hasLayer($scope.circleOverlay)) {
             $scope.map.addLayer($scope.circleOverlay);
         }
+        $scope.circleOverlay.setLatLng($scope.originMarker.getLatLng());
     }
 
     function updateCircleOverlay(e) {
-        $scope.circleOverlay.setLatLng($scope.originMarker.getLatLng());
-        $scope.circleOverlay.setRadius(
-            $scope.originMarker.getLatLng().distanceTo(e.latlng)
-        );
+        var radius = $scope.originMarker.getLatLng().distanceTo(e.latlng);
+
+        // If radius is too big or small, make circle red and clamp it within bounds.
+        if (radius < BING_API_MIN_RADIUS_METERS || radius > BING_API_MAX_RADIUS_METERS) {
+            $scope.circleOverlay.setStyle({ color: 'red' });
+            radius = clampWithinBounds(radius, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS);
+        } else {
+            $scope.circleOverlay.setStyle({ color: '#3388ff' });
+        }
+
+        $scope.circleOverlay.setRadius(radius);
+        $scope.$apply(function () {
+            $scope.radius = radius;
+        });
     }
 
     function removeCircleOverlay(e) {
@@ -111,8 +141,27 @@ controller('MapController', function MapController($scope, BING_API_KEY) {
         $scope.map.removeEventListener('mouseout', removeCircleOverlay);
 
         $scope.$apply(function () {
-            $scope.radius = $scope.originMarker.getLatLng().distanceTo(e.latlng);
+            var radius = $scope.originMarker.getLatLng().distanceTo(e.latlng);
+            $scope.radius = clampWithinBounds(radius, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS);
             $scope.setRadiusMode = false;
         });
+
+        $rootScope.$broadcast('searchAreaSet', { origin: $scope.originMarker.getLatLng(), radius: $scope.radius });
     }
 });
+
+function clearEOIMarkers($scope) {
+    // Remove existing markers.
+    $scope.placesOfInterestMarkers.forEach(function (marker) {
+        $scope.map.removeLayer(marker);
+    });
+
+    $scope.placesOfInterestMarkers = [];
+}
+
+function clampWithinBounds(value, lowerBound, upperBound) {
+    value = Math.max(value, lowerBound);
+    value = Math.min(value, upperBound);
+
+    return value;
+}

@@ -16,6 +16,8 @@
 <body>
     <h1>Tour Planner</h1>
 
+    <p>Please note that this map only provides place of interest data for North America.</p>
+
     <div id="row">
         <section id="mapPanel" ng-controller="MapController">
             <div id="mapControls">
@@ -36,11 +38,22 @@
             </div>
             <div id="map"></div>
         </section>
-        <section id="locationsOfInterest" ng-controller="PlacesOfInterestController">
-            <h1>Locations of Interest</h1>
+        <section id="placesOfInterest" ng-controller="PlacesOfInterestController">
+            <h1>Places of Interest</h1>
+            <div ng-repeat="place in placesOfInterest" class="placeOfInterest">
+                <h2>{{place.DisplayName}}</h2>
+                <p>{{place.AddressLine}}<br>
+                    {{place.Locality}}<br>
+                    {{place.AdminDistrict}} {{place.PostalCode}}</p>
+                <p>Phone: <a href="tel:{{place.Phone}}">{{place.Phone}}</a></p>
+            </div>
+            <p ng-if="placesOfInterest.length === 0">
+                No Places of interest found within the search area.
+            </p>
         </section>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>
     <script src="lib/leaflet-bing-layer.min.js"></script>
     <script src="lib/geocoder/Control.Geocoder.js"></script>
