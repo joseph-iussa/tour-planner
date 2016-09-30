@@ -4,6 +4,10 @@ angular.module('placesOfInterest').
 controller('PlacesOfInterestController', function PlacesOfInterestController($scope, $rootScope, BING_API_KEY) {
     $scope.placesOfInterest = [];
 
+    $scope.removePlaceOfInterest = function(place) {
+        $rootScope.$broadcast('placeOfInterestRemoved', place);
+    };
+
     $scope.$on('searchAreaSet', function(e, searchArea) {
         var lat = searchArea.origin.lat;
         var lng = searchArea.origin.lng;
@@ -39,5 +43,9 @@ controller('PlacesOfInterestController', function PlacesOfInterestController($sc
             $scope.placesOfInterest = [];
         });
         $rootScope.$broadcast('placesOfInterestUpdated', $scope.placesOfInterest);
+    });
+
+    $scope.$on('placeOfInterestRemoved', function(e, place) {
+        $scope.placesOfInterest.splice($scope.placesOfInterest.indexOf(place), 1);
     });
 });

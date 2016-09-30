@@ -2,7 +2,7 @@
 
 angular.module('map').
 controller('MapController', function MapController(
-        $scope, $rootScope, BING_API_KEY, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS) {
+        $scope, $rootScope, $compile, BING_API_KEY, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS) {
     $scope.radius = 0;
     $scope.setRadiusMode = false;
 
@@ -73,6 +73,10 @@ controller('MapController', function MapController(
         $scope.setRadiusMode = !$scope.setRadiusMode;
     };
 
+    $scope.removePlaceOfInterest = function(place) {
+        $rootScope.$broadcast('placeOfInterestRemoved', place);
+    };
+
     $scope.$on('placesOfInterestUpdated', function(e, placesOfInterest) {
         clearEOIMarkers($scope);
 
@@ -88,11 +92,24 @@ controller('MapController', function MapController(
                     shadowSize: L.Icon.Default.prototype.options.shadowSize
                 }),
                 riseOnHover: true
-            }).bindPopup(poi.DisplayName);
+            });
+
+            var poiAndMarkerObj = { poi: poi, marker: marker };
+
+            marker.bindPopup(createPoiPopupContent(poiAndMarkerObj, $scope, $compile));
 
             $scope.map.addLayer(marker);
-            $scope.placesOfInterestMarkers.push(marker);
+            $scope.placesOfInterestMarkers.push(poiAndMarkerObj);
         });
+    });
+
+    $scope.$on('placeOfInterestRemoved', function(e, place) {
+        var placeMarkerObjIdx = $scope.placesOfInterestMarkers.findIndex(function(poiMarkerObj) { return poiMarkerObj.poi.EntityID === place.EntityID; });
+        var placeMarkerObj = $scope.placesOfInterestMarkers[placeMarkerObjIdx];
+
+        placeMarkerObj.marker.closePopup().unbindPopup();
+        $scope.map.removeLayer(placeMarkerObj.marker);
+        $scope.placesOfInterestMarkers.splice(placeMarkerObjIdx, 1);
     });
 
     function updateOrigin(latlng) {
@@ -152,8 +169,8 @@ controller('MapController', function MapController(
 
 function clearEOIMarkers($scope) {
     // Remove existing markers.
-    $scope.placesOfInterestMarkers.forEach(function (marker) {
-        $scope.map.removeLayer(marker);
+    $scope.placesOfInterestMarkers.forEach(function (markerObj) {
+        $scope.map.removeLayer(markerObj.marker);
     });
 
     $scope.placesOfInterestMarkers = [];
@@ -164,4 +181,16 @@ function clampWithinBounds(value, lowerBound, upperBound) {
     value = Math.min(value, upperBound);
 
     return value;
+}
+
+function createPoiPopupContent(poiAndMarkerObj, scope, compile) {
+    var content = compile(angular.element('<span>{{poi.DisplayName}}<br>'
+        + '<a href="" ng-click="removePlaceOfInterest(poi)">'
+        + 'Remove</a>'
+        + '</span>'));
+
+    var tempScope = scope.$new();
+    tempScope.poi = poiAndMarkerObj.poi;
+
+    return content(tempScope)[0];
 }

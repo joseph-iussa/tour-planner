@@ -46,6 +46,9 @@
                     {{place.Locality}}<br>
                     {{place.AdminDistrict}} {{place.PostalCode}}</p>
                 <p>Phone: <a href="tel:{{place.Phone}}">{{place.Phone}}</a></p>
+                <p>
+                    <a href="" ng-click="removePlaceOfInterest(place)">Remove</a>
+                </p>
             </div>
             <p ng-if="placesOfInterest.length === 0">
                 No Places of interest found within the search area.
@@ -64,6 +67,7 @@
     <script src="map/map.module.js"></script>
     <script src="map/map.controller.js"></script>
     <script src="map/set-radius-mode-button-label.filter.js"></script>
+    <script src="map/popup-content.directive.js"></script>
     <script src="places-of-interest/places-of-interest.module.js"></script>
     <script src="places-of-interest/places-of-interest.controller.js"></script>
 </body>
