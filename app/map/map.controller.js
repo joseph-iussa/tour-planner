@@ -37,12 +37,12 @@ controller('MapController', function MapController(
         $scope.map.locate({ setView: true });
     };
 
-    $scope.map.addEventListener('locationfound', function(e) {
+    $scope.map.on('locationfound', function(e) {
         updateOrigin(e.latlng);
     });
 
     // Update origin marker based on click.
-    $scope.map.addEventListener('click', function(e) {
+    $scope.map.on('click', function(e) {
         // Only if not in set radius mode.
         if (!$scope.setRadiusMode) {
             updateOrigin(e.latlng);
@@ -57,17 +57,17 @@ controller('MapController', function MapController(
                 $scope.map.removeLayer($scope.circleOverlay);
             }
 
-            $scope.map.removeEventListener('mouseover', initCircleOverlay);
-            $scope.map.removeEventListener('mousemove', updateCircleOverlay);
-            $scope.map.removeEventListener('mouseout', removeCircleOverlay);
-            $scope.map.removeEventListener('click', setRadius);
+            $scope.map.off('mouseover', initCircleOverlay);
+            $scope.map.off('mousemove', updateCircleOverlay);
+            $scope.map.off('mouseout', removeCircleOverlay);
+            $scope.map.off('click', setRadius);
 
         // Setting mode from OFF to ON.
         } else {
-            $scope.map.addEventListener('mouseover', initCircleOverlay);
-            $scope.map.addEventListener('mousemove', updateCircleOverlay);
-            $scope.map.addEventListener('mouseout', removeCircleOverlay);
-            $scope.map.addOneTimeEventListener('click', setRadius);
+            $scope.map.on('mouseover', initCircleOverlay);
+            $scope.map.on('mousemove', updateCircleOverlay);
+            $scope.map.on('mouseout', removeCircleOverlay);
+            $scope.map.once('click', setRadius);
         }
 
         $scope.setRadiusMode = !$scope.setRadiusMode;
@@ -146,9 +146,9 @@ controller('MapController', function MapController(
     }
 
     function setRadius(e) {
-        $scope.map.removeEventListener('mouseover', initCircleOverlay);
-        $scope.map.removeEventListener('mousemove', updateCircleOverlay);
-        $scope.map.removeEventListener('mouseout', removeCircleOverlay);
+        $scope.map.off('mouseover', initCircleOverlay);
+        $scope.map.off('mousemove', updateCircleOverlay);
+        $scope.map.off('mouseout', removeCircleOverlay);
 
         $scope.$apply(function () {
             var radius = $scope.originMarker.getLatLng().distanceTo(e.latlng);
