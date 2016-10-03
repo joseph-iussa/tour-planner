@@ -2,7 +2,7 @@
 
 angular.module('map').
 controller('MapController', function MapController(
-        $scope, $rootScope, $compile, BING_API_KEY, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS) {
+        $scope, $compile, BING_API_KEY, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS) {
     $scope.radius = 0;
     $scope.setRadiusMode = false;
 
@@ -74,7 +74,7 @@ controller('MapController', function MapController(
     };
 
     $scope.removePlaceOfInterest = function(place) {
-        $rootScope.$broadcast('placeOfInterestRemoved', place);
+        $scope.$root.$broadcast('placeOfInterestRemoved', place);
     };
 
     $scope.$on('placesOfInterestUpdated', function(e, placesOfInterest) {
@@ -119,7 +119,7 @@ controller('MapController', function MapController(
         if ($scope.map.hasLayer($scope.circleOverlay)) {
             $scope.map.removeLayer($scope.circleOverlay);
             $scope.radius = 0;
-            $rootScope.$broadcast('searchAreaCleared');
+            $scope.$root.$broadcast('searchAreaCleared');
         }
     }
 
@@ -156,7 +156,7 @@ controller('MapController', function MapController(
             $scope.setRadiusMode = false;
         });
 
-        $rootScope.$broadcast('searchAreaSet', { origin: $scope.originMarker.getLatLng(), radius: $scope.radius });
+        $scope.$root.$broadcast('searchAreaSet', { origin: $scope.originMarker.getLatLng(), radius: $scope.radius });
     }
 });
 

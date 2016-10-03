@@ -1,11 +1,11 @@
 'use strict';
 
 angular.module('placesOfInterest').
-controller('PlacesOfInterestController', function PlacesOfInterestController($scope, $rootScope, BING_API_KEY) {
+controller('PlacesOfInterestController', function PlacesOfInterestController($scope, BING_API_KEY) {
     $scope.placesOfInterest = [];
 
     $scope.removePlaceOfInterest = function(place) {
-        $rootScope.$broadcast('placeOfInterestRemoved', place);
+        $scope.$root.$broadcast('placeOfInterestRemoved', place);
     };
 
     $scope.$on('searchAreaSet', function(e, searchArea) {
@@ -32,7 +32,7 @@ controller('PlacesOfInterestController', function PlacesOfInterestController($sc
                 $scope.$apply(function () {
                     $scope.placesOfInterest = pois;
                 });
-                $rootScope.$broadcast('placesOfInterestUpdated', pois);
+                $scope.$root.$broadcast('placesOfInterestUpdated', pois);
             }
         });
 
@@ -42,7 +42,7 @@ controller('PlacesOfInterestController', function PlacesOfInterestController($sc
         $scope.$apply(function () {
             $scope.placesOfInterest = [];
         });
-        $rootScope.$broadcast('placesOfInterestUpdated', $scope.placesOfInterest);
+        $scope.$root.$broadcast('placesOfInterestUpdated', $scope.placesOfInterest);
     });
 
     $scope.$on('placeOfInterestRemoved', function(e, place) {
