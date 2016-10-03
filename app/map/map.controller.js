@@ -133,11 +133,7 @@ controller('MapController', function MapController(
 
     function updateCircleOverlay(e) {
         var radius = $scope.originMarker.getLatLng().distanceTo(e.latlng);
-
-        // If radius is too big or small, clamp within bounds.
-        if (radius < BING_API_MIN_RADIUS_METERS || radius > BING_API_MAX_RADIUS_METERS) {
-            radius = clampWithinBounds(radius, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS);
-        }
+        radius = clampWithinBounds(radius, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS);
 
         $scope.circleOverlay.setRadius(radius);
         $scope.$apply(function () {
