@@ -1,10 +1,11 @@
 'use strict';
 
 angular.module('map').
-controller('MapController', function MapController(
-        $scope, $compile, BING_API_KEY, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS) {
+controller('MapController', function MapController($scope, $compile, BING_API_KEY,
+        initCircleOverlay, updateCircleOverlay, removeCircleOverlay, setRadius) {
     $scope.radius = 0;
     $scope.setRadiusMode = false;
+    $scope.placesOfInterestMarkers = [];
 
     // Map and widget objects.
     $scope.map = L.map('map').setView([40.7128, -74.0059], 11); // New York.
@@ -14,7 +15,6 @@ controller('MapController', function MapController(
         opacity: 1,
         fillOpacity: 0.05
     });
-    $scope.placesOfInterestMarkers = [];
 
     L.tileLayer.bing({
         bingMapsKey: BING_API_KEY,
@@ -29,7 +29,7 @@ controller('MapController', function MapController(
     })
     .on('markgeocode', function (e) {
         $scope.map.setView(e.geocode.center);
-        updateOrigin(e.geocode.center);
+        updateOrigin(e.geocode.center, $scope);
     }).addTo($scope.map);
 
     // Browser geolocation api.
@@ -38,14 +38,14 @@ controller('MapController', function MapController(
     };
 
     $scope.map.on('locationfound', function(e) {
-        updateOrigin(e.latlng);
+        updateOrigin(e.latlng, $scope);
     });
 
     // Update origin marker based on click.
     $scope.map.on('click', function(e) {
         // Only if not in set radius mode.
         if (!$scope.setRadiusMode) {
-            updateOrigin(e.latlng);
+            updateOrigin(e.latlng, $scope);
             clearEOIMarkers($scope);
         }
     });
@@ -57,17 +57,17 @@ controller('MapController', function MapController(
                 $scope.map.removeLayer($scope.circleOverlay);
             }
 
-            $scope.map.off('mouseover', initCircleOverlay);
-            $scope.map.off('mousemove', updateCircleOverlay);
-            $scope.map.off('mouseout', removeCircleOverlay);
-            $scope.map.off('click', setRadius);
+            $scope.map.off('mouseover', initCircleOverlay, $scope);
+            $scope.map.off('mousemove', updateCircleOverlay, $scope);
+            $scope.map.off('mouseout', removeCircleOverlay, $scope);
+            $scope.map.off('click', setRadius, $scope);
 
         // Setting mode from OFF to ON.
         } else {
-            $scope.map.on('mouseover', initCircleOverlay);
-            $scope.map.on('mousemove', updateCircleOverlay);
-            $scope.map.on('mouseout', removeCircleOverlay);
-            $scope.map.once('click', setRadius);
+            $scope.map.on('mouseover', initCircleOverlay, $scope);
+            $scope.map.on('mousemove', updateCircleOverlay, $scope);
+            $scope.map.on('mouseout', removeCircleOverlay, $scope);
+            $scope.map.once('click', setRadius, $scope);
         }
 
         $scope.setRadiusMode = !$scope.setRadiusMode;
@@ -111,79 +111,4 @@ controller('MapController', function MapController(
         $scope.map.removeLayer(placeMarkerObj.marker);
         $scope.placesOfInterestMarkers.splice(placeMarkerObjIdx, 1);
     });
-
-    function updateOrigin(latlng) {
-        $scope.originMarker.setLatLng(latlng).update();
-
-        // If have already drawn radius circle then remove it and re-set radius.
-        if ($scope.map.hasLayer($scope.circleOverlay)) {
-            $scope.map.removeLayer($scope.circleOverlay);
-            $scope.radius = 0;
-            $scope.$root.$broadcast('searchAreaCleared');
-        }
-    }
-
-    function initCircleOverlay(e) {
-        // May still have circle overlay if re-selecting radius.
-        if (!$scope.map.hasLayer($scope.circleOverlay)) {
-            $scope.map.addLayer($scope.circleOverlay);
-        }
-        $scope.circleOverlay.setLatLng($scope.originMarker.getLatLng());
-    }
-
-    function updateCircleOverlay(e) {
-        var radius = $scope.originMarker.getLatLng().distanceTo(e.latlng);
-        radius = clampWithinBounds(radius, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS);
-
-        $scope.circleOverlay.setRadius(radius);
-        $scope.$apply(function () {
-            $scope.radius = radius;
-        });
-    }
-
-    function removeCircleOverlay(e) {
-        $scope.map.removeLayer($scope.circleOverlay);
-    }
-
-    function setRadius(e) {
-        $scope.map.off('mouseover', initCircleOverlay);
-        $scope.map.off('mousemove', updateCircleOverlay);
-        $scope.map.off('mouseout', removeCircleOverlay);
-
-        $scope.$apply(function () {
-            var radius = $scope.originMarker.getLatLng().distanceTo(e.latlng);
-            $scope.radius = clampWithinBounds(radius, BING_API_MIN_RADIUS_METERS, BING_API_MAX_RADIUS_METERS);
-            $scope.setRadiusMode = false;
-        });
-
-        $scope.$root.$broadcast('searchAreaSet', { origin: $scope.originMarker.getLatLng(), radius: $scope.radius });
-    }
 });
-
-function clearEOIMarkers($scope) {
-    // Remove existing markers.
-    $scope.placesOfInterestMarkers.forEach(function (markerObj) {
-        $scope.map.removeLayer(markerObj.marker);
-    });
-
-    $scope.placesOfInterestMarkers = [];
-}
-
-function clampWithinBounds(value, lowerBound, upperBound) {
-    value = Math.max(value, lowerBound);
-    value = Math.min(value, upperBound);
-
-    return value;
-}
-
-function createPoiPopupContent(poiAndMarkerObj, scope, compile) {
-    var content = compile(angular.element('<span>{{poi.DisplayName}}<br>'
-        + '<a href="" ng-click="removePlaceOfInterest(poi)">'
-        + 'Remove</a>'
-        + '</span>'));
-
-    var tempScope = scope.$new();
-    tempScope.poi = poiAndMarkerObj.poi;
-
-    return content(tempScope)[0];
-}
