@@ -2,14 +2,44 @@
 
 angular.module('map').
 controller('MapController', function MapController($scope, $compile, BING_API_KEY,
-        initCircleOverlay, updateCircleOverlay, removeCircleOverlay, setRadius) {
+        updateCircleOverlay, setRadius) {
     $scope.radius = 0;
     $scope.setRadiusMode = false;
     $scope.placesOfInterestMarkers = [];
 
+    // Cache this so can refer to it in itself without creating a circular dependency.
+    $scope.setRadius = setRadius;
+
     // Map and widget objects.
     $scope.map = L.map('map').setView([40.7128, -74.0059], 11); // New York.
+
     $scope.originMarker = L.marker($scope.map.getCenter()).addTo($scope.map);
+    $scope.originMarker.on('mousedown', function(e) {
+        // Stop Leaflet from trying to drag the marker.
+        L.DomEvent.stop(e.originalEvent);
+
+        // Bail out if already dragging, i.e. user has started dragging but is still
+        // over the marker.
+        if ($scope.setRadiusMode) return;
+
+        $scope.map.dragging.disable();
+        $scope.setRadiusMode = true;
+
+        // May still have circle overlay if re-selecting radius.
+        if (!$scope.map.hasLayer($scope.circleOverlay)) {
+            $scope.map.addLayer($scope.circleOverlay);
+        }
+        $scope.circleOverlay.setLatLng($scope.originMarker.getLatLng());
+
+        $scope.map.on('mousemove', updateCircleOverlay, $scope);
+        $scope.map.on('mouseup', setRadius, $scope);
+        // In case user drags outside of map area and then releases mouse.
+        $('body').on('mouseup', $scope, setRadius);
+
+        // Stop click events during and at end of dragging.
+        $('body').get(0).addEventListener('click', preventClick, true);
+    });
+
     $scope.circleOverlay = L.circle([0, 0], 0, {
         weight: 2,
         opacity: 1,
@@ -49,29 +79,6 @@ controller('MapController', function MapController($scope, $compile, BING_API_KE
             clearEOIMarkers($scope);
         }
     });
-
-    $scope.toggleSetRadiusMode = function () {
-        // Setting mode from ON to OFF.
-        if ($scope.setRadiusMode) {
-            if ($scope.map.hasLayer($scope.circleOverlay)) {
-                $scope.map.removeLayer($scope.circleOverlay);
-            }
-
-            $scope.map.off('mouseover', initCircleOverlay, $scope);
-            $scope.map.off('mousemove', updateCircleOverlay, $scope);
-            $scope.map.off('mouseout', removeCircleOverlay, $scope);
-            $scope.map.off('click', setRadius, $scope);
-
-        // Setting mode from OFF to ON.
-        } else {
-            $scope.map.on('mouseover', initCircleOverlay, $scope);
-            $scope.map.on('mousemove', updateCircleOverlay, $scope);
-            $scope.map.on('mouseout', removeCircleOverlay, $scope);
-            $scope.map.once('click', setRadius, $scope);
-        }
-
-        $scope.setRadiusMode = !$scope.setRadiusMode;
-    };
 
     $scope.removePlaceOfInterest = function(place) {
         $scope.$root.$broadcast('placeOfInterestRemoved', place);

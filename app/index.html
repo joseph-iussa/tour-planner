@@ -28,12 +28,9 @@
                 </div>
 
                 <div>
-                    <strong>Current Radius:</strong>
-                    {{radius | number:0}} meters. Click the
-                    <input type="button"
-                        ng-click="toggleSetRadiusMode()"
-                        value="{{setRadiusMode | setRadiusModeButtonLabel}}" />
-                    button then click on the map to set the radius.
+                    <strong>Search Area:</strong>
+                    {{radius | number:0}} meters. Drag outward from the location marker
+                    and release to set the search area.
                 </div>
             </div>
             <div id="map"></div>
