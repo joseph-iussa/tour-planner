@@ -33,6 +33,7 @@ function updateOrigin(latlng, scope) {
     if (scope.map.hasLayer(scope.circleOverlay)) {
         scope.map.removeLayer(scope.circleOverlay);
         scope.radius = 0;
+        scope.circleOverlay.setRadius(0);
         scope.$root.$broadcast('searchAreaCleared');
     }
 }
