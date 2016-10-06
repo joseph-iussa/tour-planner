@@ -37,7 +37,10 @@ controller('MapController', function MapController($scope, $compile, BING_API_KE
         $('body').on('mouseup', $scope, setRadius);
 
         // Stop click events during and at end of dragging.
-        $('body').get(0).addEventListener('click', preventClick, true);
+        // Firefox doesn't seem to fire the click event.
+        if (!L.Browser.gecko) {
+            $('body').get(0).addEventListener('click', preventClick, true);
+        }
     });
 
     $scope.circleOverlay = L.circle([0, 0], 0, {
