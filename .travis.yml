@@ -2,6 +2,6 @@ language: node_js
 node_js:
     - "node"
 script:
-    - "exit 0"
+    - "npm run dummy"
 after_success:
     - bash deploy.sh
