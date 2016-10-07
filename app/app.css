@@ -53,3 +53,16 @@ body > h1 {
 .placeOfInterest:nth-child(odd) {
     background-color: #ddd;
 }
+
+.geolocationButton {
+    background-color: white;
+}
+
+.geolocationButton a,
+.geolocationButton a:hover {
+    font-size: 1rem;
+    line-height: 1;
+    width: auto;
+    height: auto;
+    padding: 5px;
+}

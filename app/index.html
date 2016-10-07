@@ -22,12 +22,6 @@
         <section id="mapPanel" ng-controller="MapController">
             <div id="mapControls">
                 <div>
-                    <strong>Set Location:</strong>
-                    <a href="" ng-click="detectLocation()">Use Device Location</a>
-                    or use the search form at the top of the map.
-                </div>
-
-                <div>
                     <strong>Search Area:</strong>
                     {{radius | number:0}} meters. Drag outward from the location marker
                     and release to set the search area.
@@ -63,6 +57,7 @@
     <script src="app.config.js"></script>
     <script src="map/map.utils.js"></script>
     <script src="map/map.module.js"></script>
+    <script src="map/geolocation-button.mapcontrol.js"></script>
     <script src="map/map.callbacks.js"></script>
     <script src="map/map.controller.js"></script>
     <script src="map/set-radius-mode-button-label.filter.js"></script>

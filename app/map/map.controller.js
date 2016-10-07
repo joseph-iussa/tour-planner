@@ -66,9 +66,7 @@ controller('MapController', function MapController($scope, $compile, BING_API_KE
     }).addTo($scope.map);
 
     // Browser geolocation api.
-    $scope.detectLocation = function () {
-        $scope.map.locate({ setView: true });
-    };
+    L.control.geolocationButton().addTo($scope.map);
 
     $scope.map.on('locationfound', function(e) {
         updateOrigin(e.latlng, $scope);
