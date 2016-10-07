@@ -92,11 +92,11 @@ controller('MapController', function MapController($scope, $compile, BING_API_KE
         placesOfInterest.forEach(function(poi) {
             var marker = L.marker([poi.Latitude, poi.Longitude], {
                 icon: L.icon({
-                    iconUrl: '../img/poi-icon.png',
+                    iconUrl: window.location.href + 'img/poi-icon.png',
                     iconSize: L.Icon.Default.prototype.options.iconSize,
                     iconAnchor: L.Icon.Default.prototype.options.iconAnchor,
                     popupAnchor: L.Icon.Default.prototype.options.popupAnchor,
-                    shadowUrl: '../img/poi-shadow.png',
+                    shadowUrl: window.location.href + 'img/poi-shadow.png',
                     shadowSize: L.Icon.Default.prototype.options.shadowSize
                 }),
                 riseOnHover: true
