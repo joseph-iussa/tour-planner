@@ -1,0 +1,1 @@
+After cloning, run `npm start` to install dependencies and start the dev server, then go to `localhost:8000`.
