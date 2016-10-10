@@ -31,7 +31,7 @@
         </section>
         <section id="placesOfInterest" ng-controller="PlacesOfInterestController">
             <h1>Places of Interest</h1>
-            <div ng-repeat="place in placesOfInterest" class="placeOfInterest">
+            <div ng-if="!poiDataFetchError" ng-repeat="place in placesOfInterest" class="placeOfInterest">
                 <h2>{{place.DisplayName}}</h2>
                 <p>{{place.AddressLine}}<br>
                     {{place.Locality}}<br>
@@ -41,8 +41,11 @@
                     <a href="" ng-click="removePlaceOfInterest(place)">Remove</a>
                 </p>
             </div>
-            <p ng-if="placesOfInterest.length === 0">
+            <p ng-if="!poiDataFetchError && placesOfInterest.length === 0">
                 No Places of interest found within the search area.
+            </p>
+            <p ng-if="poiDataFetchError">
+                There was an error retrieving Place of Interest Data.
             </p>
         </section>
     </div>
