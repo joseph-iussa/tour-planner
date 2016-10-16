@@ -18,8 +18,9 @@ controller('PlacesOfInterestController', function PlacesOfInterestController($sc
         }, function (error) {
             $scope.placesOfInterest = [];
             $scope.poiDataFetchError = true;
+        }).finally(function () {
+            $scope.$root.$broadcast('placesOfInterestUpdated', $scope.placesOfInterest);
         });
-        $scope.$root.$broadcast('placesOfInterestUpdated', $scope.placesOfInterest);
     });
 
     $scope.$on('searchAreaCleared', function () {
@@ -29,7 +30,11 @@ controller('PlacesOfInterestController', function PlacesOfInterestController($sc
         $scope.$root.$broadcast('placesOfInterestUpdated', $scope.placesOfInterest);
     });
 
-    $scope.$on('placeOfInterestRemoved', function(e, place) {
-        $scope.placesOfInterest.splice($scope.placesOfInterest.indexOf(place), 1);
+    $scope.$on('placeOfInterestRemoved', function (e, place) {
+        var idx = $scope.placesOfInterest.indexOf(place);
+        if (idx === -1) {
+            return;
+        }
+        $scope.placesOfInterest.splice(idx, 1);
     });
 });
